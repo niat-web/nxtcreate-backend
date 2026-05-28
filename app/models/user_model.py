@@ -14,16 +14,12 @@ class UserCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
     password: str = Field(..., min_length=6)
-    batch: str = Field(..., pattern=r"^BATCH-\d+$")
-    category: Literal["ABOVE_AVERAGE", "AVERAGE", "GOOD", "POOR"]
 
 
 class UserUpdate(BaseModel):
     """Schema for user updates"""
 
     name: Optional[str] = Field(None, min_length=1, max_length=100)
-    batch: Optional[str] = Field(None, min_length=1, max_length=100)
-    category: Optional[Literal["ABOVE_AVERAGE", "AVERAGE", "GOOD", "POOR"]] = None
 
 
 class UserResponse(BaseModel):
@@ -33,8 +29,6 @@ class UserResponse(BaseModel):
     name: str
     email: str
     role: str
-    batch: str
-    category: str
     created_at: datetime
     updated_at: datetime
 
@@ -49,8 +43,6 @@ class UserInDB(BaseModel):
     name: str
     email: str
     role: str
-    batch: str
-    category: str
     created_at: datetime
     updated_at: datetime
 

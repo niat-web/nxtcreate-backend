@@ -35,27 +35,6 @@ def validate_password(password: str) -> tuple[bool, str]:
     return True, ""
 
 
-def validate_category(
-    category: str,
-) -> tuple[bool, str]:
-    """
-    Validate category value
-
-    Args:
-        category: Category to validate
-
-    Returns:
-        Tuple of (is_valid, error_message)
-    """
-    valid_categories = ["ABOVE_AVERAGE", "AVERAGE", "GOOD", "POOR"]
-    if category.upper() not in valid_categories:
-        return (
-            False,
-            f"Invalid category. Must be one of: {', '.join(valid_categories)}",
-        )
-    return True, ""
-
-
 def validate_name(name: str) -> tuple[bool, str]:
     """
     Validate name
@@ -73,18 +52,4 @@ def validate_name(name: str) -> tuple[bool, str]:
     return True, ""
 
 
-def validate_batch(batch: str) -> tuple[bool, str]:
-    """
-    Validate batch
 
-    Args:
-        batch: Batch to validate
-
-    Returns:
-        Tuple of (is_valid, error_message)
-    """
-    if not batch or len(batch) == 0:
-        return False, "Batch cannot be empty"
-    if len(batch) > 100:
-        return False, "Batch must be less than 100 characters"
-    return True, ""
