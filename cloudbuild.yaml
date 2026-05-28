@@ -1,0 +1,54 @@
+steps:
+  # Step 1: Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/nxtcreate-backend/nxtcreate-backend:$SHORT_SHA'
+      - '-t'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/nxtcreate-backend/nxtcreate-backend:latest'
+      - '.'
+
+  # Step 2: Push image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/nxtcreate-backend/nxtcreate-backend:$SHORT_SHA'
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'nxtcreate-backend'
+      - '--image=asia-south1-docker.pkg.dev/$PROJECT_ID/nxtcreate-backend/nxtcreate-backend:$SHORT_SHA'
+      - '--region=asia-south1'
+      - '--allow-unauthenticated'
+      - '--set-env-vars=ENVIRONMENT=production,DEBUG=false,FIREBASE_PROJECT_ID=${_FIREBASE_PROJECT_ID},FIREBASE_PRIVATE_KEY=${_FIREBASE_PRIVATE_KEY},FIREBASE_CLIENT_EMAIL=${_FIREBASE_CLIENT_EMAIL},FIREBASE_WEB_API_KEY=${_FIREBASE_WEB_API_KEY},FIREBASE_DATABASE_URL=${_FIREBASE_DATABASE_URL}'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--timeout=3600'
+    env:
+      - 'CLOUDSDK_COMPUTE_REGION=asia-south1'
+
+images:
+  - 'asia-south1-docker.pkg.dev/$PROJECT_ID/nxtcreate-backend/nxtcreate-backend:$SHORT_SHA'
+  - 'asia-south1-docker.pkg.dev/$PROJECT_ID/nxtcreate-backend/nxtcreate-backend:latest'
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  # Fix for the build error - use Cloud Logging only
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '1800s'
+
+# Substitutions for sensitive values (replace with your actual values)
+substitutions:
+  _FIREBASE_PROJECT_ID: 'nxtsms'
+  _FIREBASE_CLIENT_EMAIL: 'firebase-adminsdk-fbsvc@nxtsms.iam.gserviceaccount.com'
+  _FIREBASE_WEB_API_KEY: 'AIzaSyAdYEkI8jrbFkZ7UoWwfNm32qg_X1PSNlI'
+  _FIREBASE_DATABASE_URL: 'https://nxtsms-default-rtdb.asia-southeast1.firebasedatabase.app/'
+  _FIREBASE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDHQB56BM+ZiLd6\nYvwVFcKWp3paH7AKSufJScCHHAWbUeLa086ZFYWDbl9RVsBSoRtQzLXY7kWngD75\nZci5xIUeuQmLBR0IqEb8qn3mtteaLIq2WhIVts4oNxk/aXVsncjlKlULbOnuy3V0\nuyAnYo8e3e1lnJMF51dLkuEDUvVyqWIPUShZNNXWH55U7XeSivHXnwXG6oCT7ERU\nsowJ7LpaW7qc7xQfA0eXlo/k/hVJcgua09qQi9vFUZiqlOgIY8+9BVFJH1NYON1m\nXxF4wgTe4ip4pzMI5NLUoR+jSdFvZjktHtpjlFmdUYkIgOaKxlUazoW8rxYb8a+o\nDlF9kjjhAgMBAAECggEAWMcMbUCUgSvF2I2fFQP3iinAHcTNqqBaazjlxC1roBtZ\nsTe7b0EEFp4IcVTuZ0KqSZOUmL39ohbFuFiuGXti9t/qTRtvpspXqr+KTlB8exDK\nk1pJgYxMieWW5camz8jz2IvGjcsu5juYL3Uq6/GBpHasjmA3r+M2ZZFhmZoOi9H7\nPyOeMaCW/IkAMwEWG0Har5zoxH0Zz7rV7rGKHmrVAxzv7gFwDrrMtclUPbL7iAnL\nCzSaNMYyCcTL01NzIdu/4x0hFZMheLiv4qh0jMLVKnx7X1XJtlRdKNLmsTDuBcQa\nYZBohPuVDbXEaX3ZYUzq7eGfC3lCLT/3EGHZk+CTwwKBgQD8iSwMvT2S0VWVhMVq\nzuhQJP/As7lSfQYrPOlNZhnLwjrVT7gImbHWC6Jc3UxVZowzBpcjTd1ZslXwIn/c\ncX3YRMLvbiJ3mRDqO1M2VOFHAwTyD+s2pmpV4KgkeDZtpGXnQ+9mM8kXymxslGO4\nKYP9y1c5ajqxF0YgE/mgybVWxwKBgQDJ+9NBp9+Ra6/xHa4nJBk/0JUbBmt28cl0\ndAqNMCGKrFP7ATg8nCcpNIv9j167qjLwCzriZAO6pvHXxpV8diZ7DfEsCr1S36ZC\nVLVXedEyzHfRgiTcQc/jJMKgMUyZ6Od/1u8zMZX/WH33dYTP8xT8zCz+imleaqjU\n4fjEjawrFwKBgBjOyNr/hBr2IXgssNALP1sQJ2egwCXQTljVBP4rd4FCtVDbIfMG\nVif2wJ5qxuLkzgT9Mr+vGH2FPVf3q6PWKkyihJvMr+obyUOZTFVcBT1amJPG6I5X\nzr5c8WeTv5UJv1D2pX/eunRx2DDaauleeq7l2M21F8rpxGPGUpFu/zdlAoGBAK8B\nCP53BEdMRaok7DKvnUzkXXyH6G6reb/zlvzTugwb2bu+R8qEBY43IB/2q77v7ah8\nIm3q+Cwt35b0Uar/98FgyBg/yd/XNYd9O43qVy6raBlXqLZKM2P8AsGnVVZ5LLNg\nN+pkSTFvq9zPrt46IHIUOdvlcvxCb7vbep5andTLAoGBAPr1ht0IQs/jvDqhEQkS\nlhh1izlKVrmnlDhrtlRZpdY9JZ+zlODngUmHBffz2J7poOBg5UruyZJNnugrH9Av\ncmaN9TqyYdwkN0YgUE7OtzIfds8ByA0pdG44gRwbn4ZgcijnUtwRvd7vhsai54CB\nVEaNi18TPXZqI3cGTAp6WQGB\n-----END PRIVATE KEY-----\n'
+
+# Note: For production, consider using Secret Manager for sensitive values instead of substitutions.
+# See: https://cloud.google.com/build/docs/securing-builds/use-secrets
