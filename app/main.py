@@ -46,7 +46,7 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI app
 app = FastAPI(
-    title="NextWave SMS Backend",
+    title="NxtCreate Backend",
     description="Production-ready FastAPI backend with Firebase",
     version="1.0.0",
     lifespan=lifespan,
@@ -110,7 +110,7 @@ async def root():
     """Root endpoint"""
     return {
         "status": "success",
-        "message": "Welcome to NextWave SMS Backend API",
+        "message": "Welcome to NxtCreate backend",
         "docs": "/docs",
         "openapi_schema": "/openapi.json",
     }
