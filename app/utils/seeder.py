@@ -118,7 +118,7 @@ class DatabaseSeeder:
         self,
         email: str = "test@nxtwave.co.in",
         password: str = "12345678",
-        name: str = "Normal User",
+        name: str = "Test User",
     ) -> bool:
         """
         Create normal user if it doesn't exist
@@ -230,7 +230,7 @@ class DatabaseSeeder:
             logger.info("="*60)
             self.seed_normal_user(
                 email="test@nxtwave.co.in",
-                password="12345",
+                password="12345678",
                 name="Test User"
             )
             
