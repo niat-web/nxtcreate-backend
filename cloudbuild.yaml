@@ -16,7 +16,8 @@ steps:
       - 'asia-south1-docker.pkg.dev/$PROJECT_ID/nxtcreate-backend/nxtcreate-backend:$SHORT_SHA'
 
   # Step 3: Deploy to Cloud Run
-  - name: 'gcr.io/cloud-builders/gcloud'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
     args:
       - 'run'
       - 'deploy'
@@ -24,7 +25,8 @@ steps:
       - '--image=asia-south1-docker.pkg.dev/$PROJECT_ID/nxtcreate-backend/nxtcreate-backend:$SHORT_SHA'
       - '--region=asia-south1'
       - '--allow-unauthenticated'
-      - '--set-env-vars=ENVIRONMENT=production,DEBUG=false,FIREBASE_PROJECT_ID=${_FIREBASE_PROJECT_ID},FIREBASE_PRIVATE_KEY=${_FIREBASE_PRIVATE_KEY},FIREBASE_CLIENT_EMAIL=${_FIREBASE_CLIENT_EMAIL},FIREBASE_WEB_API_KEY=${_FIREBASE_WEB_API_KEY},FIREBASE_DATABASE_URL=${_FIREBASE_DATABASE_URL}'
+      - '--update-secrets=FIREBASE_PROJECT_ID=FIREBASE_PROJECT_ID:latest,FIREBASE_PRIVATE_KEY=FIREBASE_PRIVATE_KEY:latest,FIREBASE_CLIENT_EMAIL=FIREBASE_CLIENT_EMAIL:latest,FIREBASE_WEB_API_KEY=FIREBASE_WEB_API_KEY:latest,FIREBASE_DATABASE_URL=FIREBASE_DATABASE_URL:latest'
+      - '--set-env-vars=ENVIRONMENT=production,DEBUG=false'
       - '--memory=512Mi'
       - '--cpu=1'
       - '--timeout=3600'
@@ -41,14 +43,6 @@ options:
   logging: CLOUD_LOGGING_ONLY
 
 timeout: '1800s'
-
-# Substitutions for sensitive values (replace with your actual values)
-substitutions:
-  _FIREBASE_PROJECT_ID: 'nxt-create-deb'
-  _FIREBASE_CLIENT_EMAIL: 'firebase-adminsdk-fbsvc@nxt-create-deb.iam.gserviceaccount.com'
-  _FIREBASE_WEB_API_KEY: 'AIzaSyBgqtT7MiA1wEb8EsRvUUAKZNp9BnMsHRI'
-  _FIREBASE_DATABASE_URL: 'https://nxt-create-deb-default-rtdb.asia-southeast1.firebasedatabase.app/'
-  _FIREBASE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDXMr8kk7JV71a+\nYK6krfTtZgeER7F25FvVYMESwkP3M1Q5my+lmknzU8ff+neKu+J6+2nsbJ3Ows4X\n1pRhzFosVu3yyGt4erykaQizXkYEXefT3kDuQT0z7TbsA4Qn88cbniSBCW7oQIgM\nZDpvLh9r6sIGukAh6FSREpqnQK5mq5ZnyD1Rv9Bwm+4AbYhHS6X/6OMAJYRZ/XAJ\nPmVZFtG/PR9Vhz27+0vN8cWM05HBUlTOHSqHXh7zu7tNLccufxDQqSZ1/J867d86\nqOLIIbzRg5+abYT1hhK6C3/qaUnA6nhYr3uMz0A6lpzW6xbIx7uJMMuSMP0IENvQ\nZOQApFWHAgMBAAECggEAagybjqJsgZXjeQk7N3N0nqMntCQCjBUoPmSicSSkCsfU\nS1kzJ1h79fpFJxcO3yMNDs8kGXtDX3e3yZ6Y3AMxMuWZ+ImVELfni9wpCf+84H0I\neGvwMpma2CKf7Lok3+1uIymRUre73J+ki/q+ozinCm8Ts+4IGc2dEysIZMDm0Tf5\nez81jUxaguYXksKKtMt0LrI+GPqv4m6HnA8tV6PsZlp/aIGSdmBDoT+CUwy4aYPG\nL0x/CjaSfE+vIxn4+L/fCa1ySyeUvrEXIwu26PtxQDTaGmOpB6e44AHRo4p+i4nx\naBcemrv0NQ5ZcCSPlchKvCRZD4j+oNgK9vTS2QvG1QKBgQDy6dVtPuWOSV3dqUaG\nberdctuiZxr2xO2OldE5KJluYoFuWA4sEh1v0fdLjZFECgXJzk8VYyGzo64Oepf3\nfOIev7+oMG6xbtfjlKaOpqmmRsuHYNTE7eJ4ePJ4lHUIusiIL5D8QcHk9AR/xZ6b\nnxOS8qVGPOfg4Qfkp4y2YAZ+uwKBgQDiyq0QjVmt5qLfvWyA6cHL9Emum9VEkuQN\n7hdynEHT4qtC8hs9F/LnflluoUT+tMnsc6Jjg4IjvKFJq8emIQ/KiTOfZFqiC3/n\nKEFmjO02hDPimZTKm/qFXbH7dn/fJYaaEvHDHi72LigRc4ZOt0r2DILlJ3xKWotc\n34R+w8EFpQKBgBnYcWHvSENsYPVdtmhFN7EaMG5GJCNPbqs2G43GWRTanETeT5u2\nzbUBFRvP0z33Bwiiz91Jr+NKLhHST2sAuZpl8oF1rcFpNsU7IsGY0AImFC+ySNEv\nMmJ5E+tqeE1WelGrJfUBFh1DLVte7nJGabG/6X/gqRdPOiTFAv7AltBTAoGAKRxk\nUuPMpeFxFO3ZhWTaZIZb9PL6rfuSq5PFXFlG9YnZUcFhfqmgtqYIwC0rvKA5Gku7\n3B4ysRe4hQpGnq7Plf9ZBEPEyisbfGOnt1dEiOVeIm2Es1WjDBn38YWBmInM5JEa\nkiwehzHGwaMXbZ18US3jbHbD6RaQvL0n33LMwqECgYBV9+8cG7qNHV1UJhQbvKfl\nobS6arjg9gp20+Idp+EEZF5iTedyF8TjFJqlswmt0uSN5LNFpu7oO3RLJk4mipLW\n8VMyoEM4o0shA/lBIMtWhiUp2qrClwql+bV+jbmISJvMc3CKIsF48rkG9IWdf0+f\nG4G6wB2yR+deuy86dMf4RA==\n-----END PRIVATE KEY-----\n'
 
 # Note: For production, consider using Secret Manager for sensitive values instead of substitutions.
 # See: https://cloud.google.com/build/docs/securing-builds/use-secrets
