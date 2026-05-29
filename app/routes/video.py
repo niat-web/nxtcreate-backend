@@ -21,12 +21,12 @@ async def create_video_session(
     current_user: CurrentUser = Depends(get_current_user),
 ) -> VideoSessionResponse:
     """
-    Create a user-owned video generation session from a prompt and 3 images.
+    Create a user-owned video generation session from a prompt and 1 reference image.
     """
-    if len(images) != 3:
+    if len(images) != 1:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Exactly 3 reference images are required",
+            detail="Exactly 1 reference image is required",
         )
 
     image_payloads = []

@@ -43,7 +43,7 @@ class VideoService:
         images: list[tuple[str, bytes, str]],
     ) -> dict[str, Any]:
         """
-        Create a session and upload reference images to GCS.
+        Create a session and upload the reference image to GCS.
         """
         self._validate_configuration()
 
