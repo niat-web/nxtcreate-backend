@@ -48,7 +48,7 @@ def get_current_user(
                 detail=f"Invalid ID token: {str(token_error)}",
             )
         
-        user_id = decoded_token.get("uid")
+        user_id = decoded_token.get("uid") or decoded_token.get("user_id")
 
         if not user_id:
             logger.warning("❌ Token missing user ID (uid claim)")
