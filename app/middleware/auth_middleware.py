@@ -3,6 +3,9 @@ Authentication middleware for protecting routes
 """
 
 import logging
+import base64
+import json
+import os
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -14,6 +17,26 @@ from app.services.user_service import UserService
 
 logger = logging.getLogger(__name__)
 security = HTTPBearer()
+
+
+def _normalize_token(token: str) -> str:
+    token = token.strip().strip('"').strip("'")
+    if token.lower().startswith("bearer "):
+        token = token[7:].strip()
+    return token
+
+
+def _decode_unverified_payload(token: str) -> dict:
+    try:
+        parts = token.split(".")
+        if len(parts) != 3:
+            return {}
+
+        payload = parts[1]
+        padding = "=" * (-len(payload) % 4)
+        return json.loads(base64.urlsafe_b64decode(payload + padding))
+    except Exception:
+        return {}
 
 
 def get_current_user(
@@ -32,8 +55,29 @@ def get_current_user(
         firebase = FirebaseService()
         user_service = UserService()
 
-        # Verify token
-        token = credentials.credentials
+        token = _normalize_token(credentials.credentials)
+        if token.count(".") != 2:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid ID token: expected a Firebase ID token JWT",
+            )
+
+        expected_project_id = os.getenv("FIREBASE_PROJECT_ID")
+        token_payload = _decode_unverified_payload(token)
+        token_audience = token_payload.get("aud")
+
+        if expected_project_id and token_audience and token_audience != expected_project_id:
+            logger.warning(
+                "Firebase token project mismatch. token aud=%s expected=%s",
+                token_audience,
+                expected_project_id,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=(
+                    "Invalid ID token: token belongs to a different Firebase project"
+                ),
+            )
         
         # Log token verification attempt (first 50 chars for security)
         logger.debug(f"🔍 Verifying token: {token[:50]}...")

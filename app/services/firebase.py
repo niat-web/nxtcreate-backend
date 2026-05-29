@@ -4,6 +4,7 @@ Firebase service for authentication and Firestore database
 
 import json
 import logging
+import os
 from typing import Any, Optional
 
 import firebase_admin
@@ -38,8 +39,6 @@ class FirebaseService:
             except ValueError:
                 # Firebase app not initialized, initialize it
                 # Note: In production, use environment variables for sensitive data
-                import os
-
                 from dotenv import load_dotenv
 
                 load_dotenv()
@@ -48,6 +47,20 @@ class FirebaseService:
                 firebase_project_id = os.getenv("FIREBASE_PROJECT_ID")
                 firebase_private_key = os.getenv("FIREBASE_PRIVATE_KEY")
                 firebase_client_email = os.getenv("FIREBASE_CLIENT_EMAIL")
+
+                missing = [
+                    key
+                    for key, value in {
+                        "FIREBASE_PROJECT_ID": firebase_project_id,
+                        "FIREBASE_PRIVATE_KEY": firebase_private_key,
+                        "FIREBASE_CLIENT_EMAIL": firebase_client_email,
+                    }.items()
+                    if not value
+                ]
+                if missing:
+                    raise ValueError(
+                        "Missing Firebase configuration: " + ", ".join(missing)
+                    )
 
                 # Parse and use credentials
                 cred_dict = {
@@ -65,6 +78,7 @@ class FirebaseService:
                 firebase_admin.initialize_app(
                     cred,
                     {
+                        "projectId": firebase_project_id,
                         "databaseURL": os.getenv(
                             "FIREBASE_DATABASE_URL", ""
                         ),
@@ -138,6 +152,10 @@ class FirebaseService:
             raise ValueError("Invalid ID token")
         except auth.ExpiredIdTokenError:
             raise ValueError("ID token has expired")
+        except auth.RevokedIdTokenError:
+            raise ValueError("ID token has been revoked")
+        except ValueError as e:
+            raise ValueError(str(e))
         except Exception as e:
             logger.error(f"Error verifying token: {str(e)}")
             raise Exception(f"Error verifying token: {str(e)}")
