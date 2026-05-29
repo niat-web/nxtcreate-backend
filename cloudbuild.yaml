@@ -15,7 +15,14 @@ steps:
       - 'push'
       - 'asia-south1-docker.pkg.dev/$PROJECT_ID/nxtcreate-backend/nxtcreate-backend:$SHORT_SHA'
 
-  # Step 3: Deploy to Cloud Run
+  # Step 3: Ensure video output bucket exists
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: bash
+    args:
+      - '-c'
+      - 'gcloud storage buckets describe gs://$PROJECT_ID-nxtcreate-videos || gcloud storage buckets create gs://$PROJECT_ID-nxtcreate-videos --location=us-central1 --uniform-bucket-level-access'
+
+  # Step 4: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -26,8 +33,8 @@ steps:
       - '--region=asia-south1'
       - '--allow-unauthenticated'
       - '--update-secrets=FIREBASE_PROJECT_ID=FIREBASE_PROJECT_ID:latest,FIREBASE_PRIVATE_KEY=FIREBASE_PRIVATE_KEY:latest,FIREBASE_CLIENT_EMAIL=FIREBASE_CLIENT_EMAIL:latest,FIREBASE_WEB_API_KEY=FIREBASE_WEB_API_KEY:latest,FIREBASE_DATABASE_URL=FIREBASE_DATABASE_URL:latest'
-      - '--set-env-vars=ENVIRONMENT=production,DEBUG=false'
-      - '--memory=512Mi'
+      - '--set-env-vars=ENVIRONMENT=production,DEBUG=false,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=us-central1,VIDEO_BUCKET_NAME=$PROJECT_ID-nxtcreate-videos,VEO_MODEL=veo-3.1-generate-001,VEO_ASPECT_RATIO=9:16'
+      - '--memory=1Gi'
       - '--cpu=1'
       - '--timeout=3600'
     env:

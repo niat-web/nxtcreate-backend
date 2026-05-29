@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.routes import admin, auth
+from app.routes import admin, auth, video
 from app.utils.seeder import DatabaseSeeder
 
 
@@ -80,6 +80,7 @@ async def health_check():
 # Include routers
 app.include_router(auth.router)
 app.include_router(admin.router)
+app.include_router(video.router)
 
 
 # ==================== Error Handlers ====================
