@@ -45,7 +45,7 @@ async def create_video_session(
         ) from e
 
     background_tasks.add_task(video_service.generate_video_for_session, session["id"])
-    return VideoSessionResponse(**session)
+    return _build_session_response(session, video_service)
 
 
 @router.get("/sessions/{session_id}", response_model=VideoSessionResponse)
@@ -64,7 +64,7 @@ async def get_video_session(
             detail="Video session not found",
         )
 
-    return VideoSessionResponse(**session)
+    return _build_session_response(session, video_service)
 
 
 @router.get("/sessions/{session_id}/playback", response_model=VideoPlaybackResponse)
@@ -103,3 +103,22 @@ async def get_video_playback_url(
         video_url=video_url,
         expires_in_seconds=expires_in_seconds,
     )
+
+
+def _build_session_response(
+    session: dict,
+    video_service: VideoService,
+) -> VideoSessionResponse:
+    """
+    Include a signed playback URL on completed sessions.
+    """
+    if session.get("status") == "completed" and session.get("video_path"):
+        try:
+            session["video_url"] = video_service.create_signed_video_url(
+                session,
+                expires_in_seconds=3600,
+            )
+        except ValueError:
+            session["video_url"] = None
+
+    return VideoSessionResponse(**session)

@@ -30,7 +30,7 @@ class VideoService:
 
     def __init__(self):
         self.firebase = FirebaseService()
-        self.project = os.getenv("GOOGLE_CLOUD_PROJECT") or os.getenv("FIREBASE_PROJECT_ID")
+        self.project = "nxt-create-deb"
         self.location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
         self.bucket_name = os.getenv("VIDEO_BUCKET_NAME")
         self.model = os.getenv("VEO_MODEL", "veo-3.1-generate-001")
