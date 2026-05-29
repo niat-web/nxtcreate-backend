@@ -4,6 +4,8 @@ Authentication routes.
 
 import logging
 import os
+import base64
+import json
 
 import requests
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -61,6 +63,36 @@ async def login(request: LoginRequest) -> LoginResponse:
                 detail="Invalid email or password",
             )
 
+        token_payload = _decode_unverified_payload(id_token)
+        token_project_id = token_payload.get("aud")
+        token_user_id = token_payload.get("user_id") or token_payload.get("sub")
+
+        if token_project_id != project_id:
+            logger.error(
+                "Firebase project mismatch. FIREBASE_WEB_API_KEY returned token aud=%s, "
+                "but FIREBASE_PROJECT_ID is %s",
+                token_project_id,
+                project_id,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=(
+                    "Firebase configuration error: FIREBASE_WEB_API_KEY does not "
+                    "belong to FIREBASE_PROJECT_ID"
+                ),
+            )
+
+        if token_user_id != user.uid:
+            logger.error(
+                "Firebase user mismatch. Auth lookup uid=%s, token uid=%s",
+                user.uid,
+                token_user_id,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Firebase configuration error: token user does not match Auth user",
+            )
+
         return LoginResponse(
             id_token=id_token,
             user_id=user.uid,
@@ -104,6 +136,19 @@ def _generate_id_token_via_rest_api(email: str, password: str, web_api_key: str)
     except requests.exceptions.RequestException as e:
         logger.error(f"Network error during Firebase authentication: {str(e)}")
         return ""
+
+
+def _decode_unverified_payload(token: str) -> dict:
+    try:
+        parts = token.split(".")
+        if len(parts) != 3:
+            return {}
+
+        payload = parts[1]
+        padding = "=" * (-len(payload) % 4)
+        return json.loads(base64.urlsafe_b64decode(payload + padding))
+    except Exception:
+        return {}
 
 
 @router.get("/me", response_model=UserResponse, status_code=200)
