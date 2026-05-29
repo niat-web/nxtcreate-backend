@@ -34,14 +34,14 @@ async def lifespan(app: FastAPI):
         logger.info("🌱 Initializing database...")
         seeder = DatabaseSeeder()
         seeder.seed_all()
-        logger.info("✅ Database initialization completed")
+        logger.info("Database initialization completed")
     except Exception as e:
-        logger.warning(f"⚠️ Database seeding encountered an issue: {str(e)}")
+        logger.warning(f"Database seeding encountered an issue: {str(e)}")
         # Don't fail startup if seeding fails
     
     yield
     # Shutdown
-    logger.info("🛑 FastAPI application shutting down...")
+    logger.info("FastAPI application shutting down...")
 
 
 # Create FastAPI app
@@ -73,7 +73,7 @@ async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "message": "NextWave SMS Backend is running",
+        "message": "NxtCreate Backend is running",
     }
 
 

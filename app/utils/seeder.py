@@ -42,54 +42,54 @@ class DatabaseSeeder:
             True if successful or already exists
         """
         try:
-            logger.info(f"🔍 Checking if admin user exists: {email}")
+            logger.info(f"Checking if admin user exists: {email}")
             
             # Check if admin user already exists in Firebase Auth
             existing_user = self.firebase.get_user_by_email(email)
 
             if existing_user:
-                logger.info(f"✅ Found existing user in Firebase Auth: {email}")
+                logger.info(f"Found existing user in Firebase Auth: {email}")
                 user_id = existing_user.uid
-                logger.info(f"   User ID: {user_id}")
+                logger.info(f"User ID: {user_id}")
                 
                 # Check if Firestore record exists
                 firestore_user = self.user_service.get_user(user_id)
                 
                 if firestore_user:
-                    logger.info(f"✅ Firestore record found for {email}")
+                    logger.info(f"Firestore record found for {email}")
                     return True
                 else:
-                    logger.warning(f"⚠️ Firestore record MISSING for {email}")
-                    logger.info(f"📝 Creating Firestore record for existing admin user...")
+                    logger.warning(f"Firestore record MISSING for {email}")
+                    logger.info(f"Creating Firestore record for existing admin user...")
                     
                     # Create minimal Firestore record for admin
                     self._create_admin_firestore_record(user_id, email, name)
-                    logger.info(f"✅ Admin Firestore record created for {email}")
+                    logger.info(f"Admin Firestore record created for {email}")
                     return True
 
             # User doesn't exist, create new admin
-            logger.info(f"📝 Creating new admin user: {email}")
+            logger.info(f"Creating new admin user: {email}")
             user_data = self.firebase.create_user(
                 email=email,
                 password=password,
                 display_name=name,
             )
             user_id = user_data["user_id"]
-            logger.info(f"✅ Firebase Auth user created. ID: {user_id}")
+            logger.info(f"Firebase Auth user created. ID: {user_id}")
 
             # Create minimal Firestore record for admin
-            logger.info(f"📝 Creating admin Firestore record...")
+            logger.info(f"Creating admin Firestore record...")
             self._create_admin_firestore_record(user_id, email, name)
-            logger.info(f"✅ Admin Firestore record created")
+            logger.info(f"Admin Firestore record created")
 
-            logger.info(f"✅ Admin user fully created: {email}")
+            logger.info(f"Admin user fully created: {email}")
             return True
 
         except Exception as e:
-            logger.error(f"❌ ERROR in seed_admin_user: {str(e)}")
-            logger.error(f"   Exception type: {type(e).__name__}")
+            logger.error(f"ERROR in seed_admin_user: {str(e)}")
+            logger.error(f"Exception type: {type(e).__name__}")
             import traceback
-            logger.error(f"   Traceback:\n{traceback.format_exc()}")
+            logger.error(f"Traceback:\n{traceback.format_exc()}")
             raise
 
     def _create_admin_firestore_record(self, user_id: str, email: str, name: str) -> None:
