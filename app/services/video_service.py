@@ -40,7 +40,7 @@ class VideoService:
         self,
         current_user: CurrentUser,
         prompt: str,
-        images: list[tuple[str, bytes, str]],
+        image: tuple[str, bytes, str],
     ) -> dict[str, Any]:
         """
         Create a session and upload the reference image to GCS.
@@ -49,23 +49,21 @@ class VideoService:
 
         session_id = uuid.uuid4().hex
         now = datetime.utcnow().isoformat()
-        image_paths = []
-
-        for index, (filename, image_bytes, content_type) in enumerate(images, start=1):
-            extension = self._extension_for_content_type(content_type)
-            object_name = (
-                f"video-sessions/{current_user.user_id}/{session_id}/"
-                f"reference-{index}{extension}"
-            )
-            self._upload_bytes(object_name, image_bytes, content_type)
-            image_paths.append(f"gs://{self.bucket_name}/{object_name}")
+        filename, image_bytes, content_type = image
+        extension = self._extension_for_content_type(content_type)
+        object_name = (
+            f"video-sessions/{current_user.user_id}/{session_id}/"
+            f"reference{extension}"
+        )
+        image_path = f"gs://{self.bucket_name}/{object_name}"
+        self._upload_bytes(object_name, image_bytes, content_type)
 
         session = {
             "user_id": current_user.user_id,
             "prompt": prompt,
             "status": "queued",
-            "image_paths": image_paths,
-            "source_filenames": [filename for filename, _, _ in images],
+            "image_path": image_path,
+            "source_filename": filename,
             "video_path": None,
             "error": None,
             "created_at": now,
@@ -87,18 +85,16 @@ class VideoService:
 
             self._update_session(session_id, {"status": "processing", "error": None})
 
-            reference_images = []
-            for image_path in session.get("image_paths", []):
-                image_bytes, content_type = self._download_gcs_uri(image_path)
-                reference_images.append(
-                    types.VideoGenerationReferenceImage(
-                        image=types.Image(
-                            image_bytes=image_bytes,
-                            mime_type=content_type,
-                        ),
-                        reference_type="asset",
-                    )
+            image_bytes, content_type = self._download_gcs_uri(session["image_path"])
+            reference_images = [
+                types.VideoGenerationReferenceImage(
+                    image=types.Image(
+                        image_bytes=image_bytes,
+                        mime_type=content_type,
+                    ),
+                    reference_type="asset",
                 )
+            ]
 
             client = genai.Client(
                 vertexai=True,
