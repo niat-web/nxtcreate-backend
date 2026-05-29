@@ -3,7 +3,6 @@ Authentication middleware for protecting routes
 """
 
 import logging
-from typing import Any, Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -74,7 +73,7 @@ def get_current_user(
         return CurrentUser(
             user_id=user_id,
             email=user_data.get("email", ""),
-            role=user_data.get("role", "student"),
+            role=user_data.get("role", "user"),
             name=user_data.get("name", ""),
         )
 
@@ -119,26 +118,3 @@ def get_admin_user(
         )
     return current_user
 
-
-def get_student_user(
-    current_user: CurrentUser = Depends(get_current_user),
-) -> CurrentUser:
-    """
-    Dependency for student-only routes
-
-    Args:
-        current_user: Current authenticated user
-
-    Returns:
-        CurrentUser if user is student
-
-    Raises:
-        HTTPException: If user is not student
-    """
-    if current_user.role != "student":
-        logger.warning(f"Unauthorized student access attempt: {current_user.user_id}")
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Student access required",
-        )
-    return current_user

@@ -3,7 +3,6 @@ Database seeder - Initialize default data
 """
 
 import logging
-from typing import Optional
 
 from app.services.firebase import FirebaseService
 from app.services.user_service import UserService
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 class DatabaseSeeder:
     """
     Seeder for initializing database with default data
-    Creates admin users and student users with different field structures
+    Creates the default admin user and test user.
     """
 
     def __init__(self):

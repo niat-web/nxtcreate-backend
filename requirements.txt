@@ -2,20 +2,15 @@
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.5.0
-pydantic-settings==2.1.0
 
 # Firebase
 firebase-admin==6.2.0
 
-# File handling
-python-multipart==0.0.6
-openpyxl==3.11.0
-
 # Configuration
 python-dotenv==1.0.0
 
-# Async utilities
-aiofiles==23.2.1
-
 # Email validation
 email-validator==2.1.0
+
+# HTTP client
+requests==2.31.0

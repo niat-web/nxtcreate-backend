@@ -26,9 +26,7 @@ class UserService:
         user_id: str,
         name: str,
         email: str,
-        batch: str,
-        category: str,
-        role: str = "student",
+        role: str = "user",
     ) -> bool:
         """
         Create user in Firestore
@@ -37,9 +35,7 @@ class UserService:
             user_id: Firebase user ID
             name: User name
             email: User email
-            batch: User batch
-            category: User category
-            role: User role (default: student)
+            role: User role
 
         Returns:
             True if successful
@@ -49,8 +45,6 @@ class UserService:
                 "name": name,
                 "email": email,
                 "role": role,
-                "batch": batch,
-                "category": category,
                 "created_at": datetime.utcnow().isoformat(),
                 "updated_at": datetime.utcnow().isoformat(),
             }
@@ -98,18 +92,18 @@ class UserService:
             logger.error(f"Error updating user: {str(e)}")
             raise
 
-    def get_all_students(self) -> list[dict[str, Any]]:
+    def get_non_admin_users(self) -> list[dict[str, Any]]:
         """
-        Get all students
+        Get all users except admins.
 
         Returns:
-            List of students
+            List of non-admin users
         """
         try:
-            students = self.firebase.query_collection("users", "role", "==", "student")
-            return students
+            users = self.firebase.get_collection("users")
+            return [user for user in users if user.get("role") != "admin"]
         except Exception as e:
-            logger.error(f"Error getting students: {str(e)}")
+            logger.error(f"Error getting users: {str(e)}")
             return []
 
     def delete_user(self, user_id: str) -> bool:
