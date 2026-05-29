@@ -17,37 +17,27 @@ router = APIRouter(prefix="/videos", tags=["videos"])
 async def create_video_session(
     background_tasks: BackgroundTasks,
     prompt: str = Form(..., min_length=1, max_length=2000),
-    images: list[UploadFile] = File(...),
+    image: UploadFile = File(...),
     current_user: CurrentUser = Depends(get_current_user),
 ) -> VideoSessionResponse:
     """
     Create a user-owned video generation session from a prompt and 1 reference image.
     """
-    if len(images) != 1:
+    if image.content_type not in {"image/png", "image/jpeg", "image/jpg", "image/webp"}:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Exactly 1 reference image is required",
+            detail="Only PNG, JPEG, and WebP images are supported",
         )
 
-    image_payloads = []
-    for image in images:
-        if image.content_type not in {"image/png", "image/jpeg", "image/jpg", "image/webp"}:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Only PNG, JPEG, and WebP images are supported",
-            )
-
-        image_payloads.append(
-            (
-                image.filename or "reference-image",
-                await image.read(),
-                image.content_type,
-            )
-        )
+    image_payload = (
+        image.filename or "reference-image",
+        await image.read(),
+        image.content_type,
+    )
 
     try:
         video_service = VideoService()
-        session = video_service.create_session(current_user, prompt, image_payloads)
+        session = video_service.create_session(current_user, prompt, image_payload)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

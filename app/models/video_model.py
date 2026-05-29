@@ -18,7 +18,7 @@ class VideoSessionResponse(BaseModel):
     user_id: str
     prompt: str
     status: VideoSessionStatus
-    image_paths: list[str] = []
+    image_path: str
     video_path: Optional[str] = None
     video_url: Optional[str] = None
     error: Optional[str] = None
